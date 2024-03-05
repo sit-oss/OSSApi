@@ -1,0 +1,31 @@
+name: deploy
+on:
+  push:
+    branches: [ "master", "dev" ]
+
+jobs:
+  deploy_dev:
+    runs-on: [self-hosted]
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - run: dotnet restore -r linux-x64
+      - run: |
+             sudo supervisorctl stop ciossapidev
+             dotnet publish -c Release --no-self-contained -r linux-x64 -o ~/build/ciossapidev
+             sudo supervisorctl start ciossapidev
+        working-directory: OSSApi
+        shell: bash
+
+  deploy_prod:
+    runs-on: [self-hosted]
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - run: dotnet restore -r linux-x64
+      - run: |
+             sudo supervisorctl stop ciossapi
+             dotnet publish -c Release --no-self-contained -r linux-x64 -o ~/build/ciossapi
+             sudo supervisorctl start ciossapi
+        working-directory: OSSApi
+        shell: bash
