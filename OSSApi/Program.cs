@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 
 namespace OSSApi
 {
+#pragma warning disable CS1591
     public class Program
     {
         public static void Main(string[] args)
@@ -93,4 +94,5 @@ namespace OSSApi
             app.Run();
         }
     }
+#pragma warning restore CS1591
 }
