@@ -19,6 +19,12 @@ namespace OSSApi
                 throw new Exception("UserCenter address is not configured");
             }
 
+            var apiScope = builder.Configuration["ApiScope"];
+            if (string.IsNullOrEmpty(apiScope))
+            {
+                throw new Exception("ApiScope is not configured");
+            }
+
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -37,7 +43,7 @@ namespace OSSApi
                 options.AddPolicy("ApiScope", policy =>
                 {
                     policy.RequireAuthenticatedUser();
-                    policy.RequireClaim("scope", "apidev");
+                    policy.RequireClaim("scope", apiScope);
                 });
             });
 
