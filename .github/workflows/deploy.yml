@@ -1,0 +1,12 @@
+name: deploy
+on:
+  push:
+    branches: [ "dev" ]
+
+jobs:
+  deploy_dev:
+    runs-on: [self-hosted, linux]
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - run: ls -lah
