@@ -5,7 +5,7 @@ on:
 
 jobs:
   deploy_dev:
-    runs-on: [self-hosted, linux]
+    runs-on: [self-hosted]
     if: github.ref == 'refs/heads/dev'
     steps:
       - uses: actions/checkout@v4
