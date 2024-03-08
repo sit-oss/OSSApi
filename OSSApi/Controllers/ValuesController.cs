@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace OSSApi.Controllers
 {
     /// <summary>
-    /// Get some values
+    /// Get some values, just an example, no authentication required
     /// </summary>
-    [Route("/")]
+    [Route("api/[controller]")]
     [ApiController]
     [AllowAnonymous]
     public class ValuesController : ControllerBase

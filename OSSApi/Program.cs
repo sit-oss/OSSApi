@@ -1,7 +1,10 @@
 
+using System.Data;
 using System.Reflection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MySqlConnector;
 
 namespace OSSApi
 {
@@ -10,20 +13,34 @@ namespace OSSApi
     {
         public static void Main(string[] args)
         {
+            Dapper.SqlMapper.AddTypeHandler(typeof(Models.PlayerSetting),new JsonTypeHandler());
+
             var builder = WebApplication.CreateBuilder(args);
 
+            #region Configs
 
-            var ucenterAddr = builder.Configuration["UserCenter"];
+            var configs = builder.Configuration;
+
+            var ucenterAddr = configs["UserCenter"];
             if (string.IsNullOrEmpty(ucenterAddr))
             {
                 throw new Exception("UserCenter address is not configured");
             }
 
-            var apiScope = builder.Configuration["ApiScope"];
+            var apiScope = configs["ApiScope"];
             if (string.IsNullOrEmpty(apiScope))
             {
                 throw new Exception("ApiScope is not configured");
             }
+
+            var dbConnectionString = configs.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrEmpty(dbConnectionString))
+            {
+                throw new Exception("Connection string is not configured");
+            }
+            Global.ConnectionString = dbConnectionString;
+
+            #endregion
 
             // Add services to the container.
 
@@ -68,17 +85,49 @@ namespace OSSApi
                     //     Url = new Uri("https://example.com/license")
                     // }
                 });
-                options.AddSecurityDefinition(name: "Bearer", securityScheme: new OpenApiSecurityScheme
+
+                var jwtSecurityScheme = new OpenApiSecurityScheme
                 {
-                    Name = "Authorization",
-                    Description = "Enter the Bearer Authorization string as following: `Bearer Generated-JWT-Token`",
+                    BearerFormat = "JWT",
+                    Name = "JWT Authentication",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
+                    Type = SecuritySchemeType.Http,
+                    Scheme = JwtBearerDefaults.AuthenticationScheme,
+                    Description = "Please enter into field the word 'Bearer' following by space and JWT",
+
+                    Reference = new OpenApiReference
+                    {
+                        Id = JwtBearerDefaults.AuthenticationScheme,
+                        Type = ReferenceType.SecurityScheme
+                    }
+                };
+
+                options.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { jwtSecurityScheme, Array.Empty<string>() }
                 });
                 
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+            });
+
+            builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+
+            builder.Services.AddHttpClient<IUserInfoClient, UserInfoClient>(client =>
+            {
+                client.BaseAddress = new Uri(ucenterAddr);
+            });
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("SiteCorsPolicy", x =>
+                {
+                    x.WithOrigins(configs.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>())
+                        .AllowCredentials().WithHeaders(configs.GetSection("AllowedHeaders").Get<string[]>() ?? Array.Empty<string>())
+                        .WithMethods(configs.GetSection("AllowedMethods").Get<string[]>() ?? Array.Empty<string>());
+                });
             });
 
             var app = builder.Build();
@@ -89,6 +138,11 @@ namespace OSSApi
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
+            app.UseCors("SiteCorsPolicy");
 
             app.UseAuthentication();
             app.UseAuthorization();
