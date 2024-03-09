@@ -75,7 +75,7 @@ namespace OSSApi.Controllers
         {
             await using var _db = new MySqlConnection(Global.ConnectionString);
             var sql = "SELECT * FROM `danmaku` WHERE `deleted`=0 AND `id` = @id;";
-            if (max.HasValue)
+            if (max is > 0 and <= 100)
                 sql = $"SELECT * FROM `danmaku` WHERE `id` = @id ORDER BY `videotime` DESC LIMIT {max};";
             var query = (await _db.QueryAsync<DanmakuItem>(sql,new{id})).AsList();
             // var count = _db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM `danmaku` WHERE `id` = @id;",new{id});
