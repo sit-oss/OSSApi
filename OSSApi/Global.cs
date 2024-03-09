@@ -2,11 +2,13 @@
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Text;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace OSSApi
 {
     internal static class Global
     {
+        public static MemoryCache MemoryCache { get; } = new(new MemoryCacheOptions());
         public static string ConnectionString { get; set; } = "";
 
         public static byte[] ToBytes(this string str, Encoding? encoding = null)

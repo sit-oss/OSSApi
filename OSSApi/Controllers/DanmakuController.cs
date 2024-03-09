@@ -1,9 +1,11 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.Metrics;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 using OSSApi.Models;
 
@@ -45,6 +47,19 @@ namespace OSSApi.Controllers
             if (item == null)
                 return new VideoMeta{pid = ""};
             item.pid = item.id.ToString().md5();
+
+            var ip = Request.GetIpAddress();
+            var exp = 5;
+            var key = $"video:{item.id}";
+            var count = Global.MemoryCache.GetOrCreate(key, _ => 0);
+            var keywithip = $"{key}:{ip}";
+            if (!Global.MemoryCache.Get<bool>(keywithip))
+            {
+                count++;
+                Global.MemoryCache.Set(keywithip, true, TimeSpan.FromMinutes(exp));
+                Global.MemoryCache.Set(key, count, TimeSpan.FromMinutes(exp));
+            }
+            item.ucount = count;
             return item;
         }
 
