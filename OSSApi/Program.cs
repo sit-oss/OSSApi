@@ -1,7 +1,9 @@
 
 using System.Data;
 using System.Reflection;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
@@ -63,6 +65,15 @@ namespace OSSApi
                     policy.RequireClaim("scope", apiScope);
                 });
             });
+
+            builder.Services.AddRateLimiter(l => l
+                .AddFixedWindowLimiter(policyName: "send", options =>
+                {
+                    options.PermitLimit = 1;
+                    options.Window = TimeSpan.FromSeconds(3);
+                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    options.QueueLimit = 2;
+                }));
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -150,6 +161,8 @@ namespace OSSApi
 
             app.MapControllers()
                 .RequireAuthorization("ApiScope");
+
+            app.UseRateLimiter();
 
             app.Run();
         }

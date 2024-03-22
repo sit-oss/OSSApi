@@ -5,6 +5,7 @@ using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 using OSSApi.Models;
@@ -91,6 +92,7 @@ namespace OSSApi.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost]
+        [EnableRateLimiting("send")]
         public async Task<IActionResult> Post()
         {
             using var reader = new StreamReader(Request.Body);
