@@ -28,12 +28,15 @@
     /// </summary>
     public class DanmakuItem
     {
-        public string author { get; set; }
+        /// <summary>
+        /// 发送者名
+        /// </summary>
+        public string? author { get; set; }
 
         /// <summary>
         /// 弹幕池id
         /// </summary>
-        public string id { get; set; }
+        public required string id { get; set; }
         /// <summary>
         /// 弹幕id
         /// </summary>
@@ -41,19 +44,19 @@
         /// <summary>
         /// 弹幕类型
         /// </summary>
-        public string type { get; set; }
+        public required string type { get; set; }
         /// <summary>
         /// 弹幕内容
         /// </summary>
-        public string text { get; set; }
+        public required string text { get; set; }
         /// <summary>
         /// 弹幕颜色
         /// </summary>
-        public string color { get; set; }
+        public required string color { get; set; }
         /// <summary>
         /// 弹幕大小
         /// </summary>
-        public string size { get; set; }
+        public required string size { get; set; }
         /// <summary>
         /// 时间点
         /// </summary>
@@ -65,7 +68,7 @@
         /// <summary>
         /// 发送者ip
         /// </summary>
-        public string ip { get; set; }
+        public required string ip { get; set; }
         /// <summary>
         /// 发送时间
         /// </summary>
