@@ -67,16 +67,13 @@ namespace OSSApi.Controllers
         /// Get danmaku list
         /// </summary>
         /// <param name="id">video hash id</param>
-        /// <param name="max">max len</param>
         /// <returns></returns>
         [AllowAnonymous]
         [HttpGet("{id:length(32)}")]
-        public async Task<DanmakuList?> GetDanmaku([FromRoute] string id,[FromQuery] int? max = null)
+        public async Task<DanmakuList?> GetDanmaku([FromRoute] string id)
         {
             await using var _db = new MySqlConnection(Global.ConnectionString);
             var sql = "SELECT * FROM `danmaku` WHERE `deleted`=0 AND `id` = @id;";
-            if (max is > 0 and <= 100)
-                sql = $"SELECT * FROM `danmaku` WHERE `id` = @id ORDER BY `videotime` DESC LIMIT {max};";
             var query = (await _db.QueryAsync<DanmakuItem>(sql,new{id})).AsList();
             // var count = _db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM `danmaku` WHERE `id` = @id;",new{id});
             var count = query.Count;
